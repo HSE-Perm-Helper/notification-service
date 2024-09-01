@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  notification-service:
+    image: melowetty/notification-service
+    depends_on:
+      - mongo-db
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./build:/home/gradle/project/build
+    env_file: ./.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=$ACTIVE_PROFILE
+      - KAFKA_BOOTSTRAP_SERVERS=$KAFKA_SERVERS
+      - MONGO_URI=mongodb://$MONGO_USERNAME:$MONGO_PASSWORD@$MONGO_HOST:$MONGO_DOCKER_PORT/$MONGO_DATABASE?authSource=admin
+      - EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE=http://$SERVICE_DISCOVERY_USER:$SERVICE_DISCOVERY_PASSWORD@$SERVICE_DISCOVERY_HOST:$SERVICE_DISCOVERY_PORT/eureka
+    restart: always
+    networks:
+      - internal
+      - service-discovery_internal
+      - message-broker_shared
+  mongo-db:
+    image: mongo
+    env_file: ./.env
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=$MONGO_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD=$MONGO_PASSWORD
+      - MONGO_INITDB_DATABASE=$MONGO_DATABASE
+    ports:
+      - $MONGO_LOCAL_PORT:$MONGO_DOCKER_PORT
+    volumes:
+      - db:/data/db
+    restart: always
+    networks:
+      - internal
+volumes:
+  db:
+networks:
+  internal:
+  service-discovery_internal:
+    external: true
+  message-broker_shared:
+    external: true

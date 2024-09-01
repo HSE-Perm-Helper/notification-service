@@ -50,3 +50,11 @@ kotlin {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+tasks.jar {
+    archiveFileName.set("notification-service.jar")
+}
+
+tasks.bootJar {
+    archiveFileName.set("notification-service-standalone.jar")
+}
