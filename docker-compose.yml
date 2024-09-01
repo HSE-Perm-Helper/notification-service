@@ -4,9 +4,6 @@ services:
     image: melowetty/notification-service
     depends_on:
       - mongo-db
-    build:
-      context: .
-      dockerfile: Dockerfile
     volumes:
       - ./build:/home/gradle/project/build
     env_file: ./.env
