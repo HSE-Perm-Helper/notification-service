@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @Document
-data class Notification (
+data class Notification(
     @Id
     val id: UUID = UUID.randomUUID(),
     val date: LocalDateTime = LocalDateTime.now(),

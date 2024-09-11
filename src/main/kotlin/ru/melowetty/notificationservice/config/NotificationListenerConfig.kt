@@ -34,7 +34,7 @@ class NotificationListenerConfig {
         return DefaultKafkaConsumerFactory(
             consumerConfigs(),
             StringDeserializer(),
-            JsonDeserializer(ExternalNotification::class.java)
+            JsonDeserializer(ExternalNotification::class.java, false)
         )
     }
 
