@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 import ru.melowetty.notificationservice.controller.request.NotificationData
-import ru.melowetty.notificationservice.domain.entity.Notification
+import ru.melowetty.notificationservice.model.Notification
 import ru.melowetty.notificationservice.service.NotificationService
 
 @RestController
