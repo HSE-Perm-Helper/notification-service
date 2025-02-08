@@ -12,7 +12,8 @@ class ExternalNotificationConsumer(
 ) {
     @KafkaListener(
         topics = ["\${spring.kafka.topic.notifications}"],
-        groupId = "\${spring.kafka.consumer.group-id}"
+        groupId = "\${spring.kafka.consumer.group-id}",
+        containerFactory = "kafkaListenerContainerFactory"
     )
     fun consumeNewNotification(notification: ExternalNotification) {
         val newNotify = Notification(

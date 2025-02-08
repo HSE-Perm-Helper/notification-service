@@ -45,4 +45,21 @@ class NotificationListenerConfig {
         factory.consumerFactory = consumerFactory()
         return factory
     }
+
+    @Bean
+    fun consumerFactoryHashMap(): ConsumerFactory<String, HashMap<String, Any?>> {
+        return DefaultKafkaConsumerFactory(
+            consumerConfigs(),
+            StringDeserializer(),
+            JsonDeserializer(Map::class.java, false)
+        )
+    }
+
+    @Bean
+    fun kafkaListenerContainerFactoryHashMap(): ConcurrentKafkaListenerContainerFactory<String, HashMap<String, Any?>> {
+        val factory: ConcurrentKafkaListenerContainerFactory<String, HashMap<String, Any?>> =
+            ConcurrentKafkaListenerContainerFactory<String, HashMap<String, Any?>>()
+        factory.consumerFactory = consumerFactoryHashMap()
+        return factory
+    }
 }
