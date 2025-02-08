@@ -10,11 +10,14 @@ import org.springframework.stereotype.Component
 import ru.melowetty.notificationservice.annotation.KafkaNotification
 import ru.melowetty.notificationservice.annotation.Slf4j
 import ru.melowetty.notificationservice.annotation.Slf4j.Companion.log
+import ru.melowetty.notificationservice.processor.email.EmailNotificationProcessor
+import ru.melowetty.notificationservice.utils.ReflectionUtils
 
 @Component
 @Slf4j
 class NextGenNotificationConsumer(
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val emailNotificationProcessor: EmailNotificationProcessor
 ) {
     private val mapperByNotificationType: Map<String, Class<*>> = getNotificationsClassesMapper()
 
@@ -32,9 +35,7 @@ class NextGenNotificationConsumer(
                 Class.forName(it.beanClassName)
             }
             .associateBy {
-                val annotation = it.annotations.find {
-                    it is KafkaNotification
-                } as KafkaNotification
+                val annotation = ReflectionUtils.getAnnotationInstanceFromClass<KafkaNotification>(it)!!
 
                 annotation.notificationType.type
             }
@@ -59,6 +60,7 @@ class NextGenNotificationConsumer(
 
         try {
             val valueAsObject = objectMapper.readValue(valueAsStr, targetType)
+            emailNotificationProcessor.process(valueAsObject)
         } catch (e: JsonMappingException) {
             log.error("Ошибка во время маппинга нотификации: $notification")
         } catch (e: JsonProcessingException) {
