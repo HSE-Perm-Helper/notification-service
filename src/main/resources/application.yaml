@@ -10,3 +10,5 @@ spring:
     topic:
       notifications: new-notification
       next-gen-notifications: next-gen-notification
+  thymeleaf:
+    prefix: classpath:/templates/email/
