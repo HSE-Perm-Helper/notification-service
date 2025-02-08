@@ -1,5 +1,7 @@
 package ru.melowetty.notificationservice.consumer
 
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider
 import org.springframework.core.type.filter.AnnotationTypeFilter
@@ -49,11 +51,18 @@ class NextGenNotificationConsumer(
         val notificationType = notification[NOTIFICATION_TYPE_FIELD]
         val targetType = mapperByNotificationType[notificationType]
             ?: run {
-                log.error("Уведомление с таким типом не найдено!")
+                log.error("Уведомление с таким типом не найдено, notification: $$notification")
                 return
             }
 
         val valueAsStr = objectMapper.writeValueAsString(notification)
-        val valueAsObject = objectMapper.readValue(valueAsStr, targetType)
+
+        try {
+            val valueAsObject = objectMapper.readValue(valueAsStr, targetType)
+        } catch (e: JsonMappingException) {
+            log.error("Ошибка во время маппинга нотификации: $notification")
+        } catch (e: JsonProcessingException) {
+            log.error("Ошибка во время процессинга нотификации: $notification")
+        }
     }
 }
