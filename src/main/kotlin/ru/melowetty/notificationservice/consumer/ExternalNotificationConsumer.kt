@@ -10,7 +10,10 @@ import ru.melowetty.notificationservice.service.NotificationService
 class ExternalNotificationConsumer(
     private val notificationService: NotificationService
 ) {
-    @KafkaListener(topics = ["new-notification"], groupId = "notification-service")
+    @KafkaListener(
+        topics = ["\${spring.kafka.topic.notifications}"],
+        groupId = "\${spring.kafka.consumer.group-id}"
+    )
     fun consumeNewNotification(notification: ExternalNotification) {
         val newNotify = Notification(
             notificationType = notification.notificationType,

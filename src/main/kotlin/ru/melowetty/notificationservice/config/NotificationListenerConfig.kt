@@ -25,7 +25,7 @@ class NotificationListenerConfig {
         props[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = bootstrapServers
         props[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
         props[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = JsonDeserializer::class.java
-        props[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
+        props[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "latest"
         return props
     }
 
