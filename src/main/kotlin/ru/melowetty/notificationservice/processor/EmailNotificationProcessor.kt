@@ -1,4 +1,4 @@
-package ru.melowetty.notificationservice.processor.email
+package ru.melowetty.notificationservice.processor
 
 import jakarta.mail.internet.MimeMessage
 import java.nio.charset.StandardCharsets
@@ -14,6 +14,7 @@ import ru.melowetty.notificationservice.annotation.Slf4j
 import ru.melowetty.notificationservice.annotation.Slf4j.Companion.log
 import ru.melowetty.notificationservice.annotation.email.Email
 import ru.melowetty.notificationservice.annotation.email.EmailNotification
+import ru.melowetty.notificationservice.processor.base.NotificationProcessor
 import ru.melowetty.notificationservice.utils.ReflectionUtils
 
 @Component
@@ -21,14 +22,14 @@ import ru.melowetty.notificationservice.utils.ReflectionUtils
 class EmailNotificationProcessor(
     private val templateEngine: TemplateEngine,
     private val emailSender: JavaMailSender
-) {
+): NotificationProcessor<EmailNotification> {
     @Value("\${spring.mail.username}")
     private lateinit var emailFrom: String
 
     @Value("\${spring.mail.display-name}")
     private lateinit var displayName: String
 
-    fun process(notification: Any) {
+    override fun process(notification: Any) {
         val emailAnnotation = ReflectionUtils.getAnnotationInstance<EmailNotification>(notification)!!
         val template = emailAnnotation.template
 
