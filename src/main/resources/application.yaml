@@ -10,6 +10,8 @@ spring:
     topic:
       notifications: new-notification
       next-gen-notifications: next-gen-notification
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
   thymeleaf:
     prefix: classpath:/templates/
   mail:

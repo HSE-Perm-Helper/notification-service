@@ -3,9 +3,13 @@ package ru.melowetty.notificationservice.consumer
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.apache.kafka.common.utils.ExponentialBackoff
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider
 import org.springframework.core.type.filter.AnnotationTypeFilter
 import org.springframework.kafka.annotation.KafkaListener
+import org.springframework.kafka.annotation.RetryableTopic
+import org.springframework.kafka.retrytopic.DltStrategy
+import org.springframework.retry.annotation.Backoff
 import org.springframework.stereotype.Component
 import ru.melowetty.notificationservice.annotation.KafkaNotification
 import ru.melowetty.notificationservice.annotation.Slf4j
@@ -47,6 +51,12 @@ class NextGenNotificationConsumer(
         topics = ["\${spring.kafka.topic.next-gen-notifications}"],
         groupId = "\${spring.kafka.consumer.group-id}",
         containerFactory = "kafkaListenerContainerFactoryHashMap"
+    )
+    @RetryableTopic(
+        attempts = "5",
+        autoCreateTopics = "true",
+        backoff = Backoff(1000, multiplier = 3.0, maxDelay = 81000),
+        dltStrategy = DltStrategy.FAIL_ON_ERROR
     )
     fun consumeNewNotification(notification: HashMap<String, Any?>) {
         val notificationType = notification[NOTIFICATION_TYPE_FIELD]
