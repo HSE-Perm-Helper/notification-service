@@ -12,39 +12,32 @@ import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 import ru.melowetty.notificationservice.annotation.Slf4j
 import ru.melowetty.notificationservice.annotation.Slf4j.Companion.log
-import ru.melowetty.notificationservice.annotation.email.Email
 import ru.melowetty.notificationservice.annotation.email.EmailNotification
 import ru.melowetty.notificationservice.processor.base.NotificationProcessor
-import ru.melowetty.notificationservice.utils.ReflectionUtils
 
 @Component
 @Slf4j
 class EmailNotificationProcessor(
     private val templateEngine: TemplateEngine,
     private val emailSender: JavaMailSender
-): NotificationProcessor<EmailNotification> {
+): NotificationProcessor<EmailNotification, String> {
     @Value("\${spring.mail.username}")
     private lateinit var emailFrom: String
 
     @Value("\${spring.mail.display-name}")
     private lateinit var displayName: String
 
-    override fun process(notification: Any, data: EmailNotification) {
+    override fun process(notification: Any, data: EmailNotification, destination: String) {
         val template = data.template
-
-        val email = ReflectionUtils.getPropertyValueByAnnotation<String, Email>(notification) ?: run {
-            log.error("Поле с почтой не найдено! Notification: $notification")
-            return
-        }
 
         val message = renderMessage(notification, template)
         val title = extractTitleFromHtml(message)
 
-        val mimeMessage = buildMimeMessage(email, message, title)
+        val mimeMessage = buildMimeMessage(destination, message, title)
 
         emailSender.send(mimeMessage)
 
-        log.info("Письмо ${data.javaClass.name} на почту $email успешно отправлено")
+        log.info("Письмо ${notification::class.java.simpleName} на почту $destination успешно отправлено")
     }
 
     fun extractTitleFromHtml(html: String): String {

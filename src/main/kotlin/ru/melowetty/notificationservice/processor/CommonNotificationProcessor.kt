@@ -3,6 +3,7 @@ package ru.melowetty.notificationservice.processor
 import org.springframework.core.ResolvableType
 import org.springframework.stereotype.Component
 import ru.melowetty.notificationservice.annotation.Notification
+import ru.melowetty.notificationservice.annotation.NotificationDestination
 import ru.melowetty.notificationservice.annotation.Slf4j
 import ru.melowetty.notificationservice.annotation.Slf4j.Companion.log
 import ru.melowetty.notificationservice.processor.base.NotificationProcessor
@@ -11,12 +12,12 @@ import ru.melowetty.notificationservice.utils.ReflectionUtils
 @Component
 @Slf4j
 class CommonNotificationProcessor(
-    private val processors: List<NotificationProcessor<*>>
+    private val processors: List<NotificationProcessor<*, *>>
 ) {
     private val processorByAnnotation = getProcessorByAnnotationMap()
     private val targetAnnotation = Notification::class.java
 
-    private final fun getProcessorByAnnotationMap(): Map<Class<out Annotation>, NotificationProcessor<*>> {
+    private final fun getProcessorByAnnotationMap(): Map<Class<out Annotation>, NotificationProcessor<*, *>> {
         return processors.associateBy { processor ->
             val type = ResolvableType.forClass(processor.javaClass).`as`(NotificationProcessor::class.java)
 
@@ -50,8 +51,14 @@ class CommonNotificationProcessor(
                 val annotationInstance = annotation
                     ?: annotation.annotationClass.java.getDeclaredConstructor().newInstance()
 
+                val destination = ReflectionUtils.getPropertyValueByAnnotation<Any, NotificationDestination>(notification) ?: run {
+                    log.error("Поле с получателем не найдено! Notification: $notification")
+                    return
+                }
+
                 @Suppress("UNCHECKED_CAST")
-                (processor as NotificationProcessor<Annotation>).process(notification, annotationInstance)
+                (processor as NotificationProcessor<Annotation, Any>)
+                    .process(notification, annotationInstance, destination)
 
                 processed = true
                 break

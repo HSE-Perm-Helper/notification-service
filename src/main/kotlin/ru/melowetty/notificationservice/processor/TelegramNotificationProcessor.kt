@@ -7,8 +7,8 @@ import ru.melowetty.notificationservice.processor.base.NotificationProcessor
 
 @Component
 @Slf4j
-class TelegramNotificationProcessor: NotificationProcessor<TelegramNotification> {
-    override fun process(notification: Any, data: TelegramNotification) {
+class TelegramNotificationProcessor: NotificationProcessor<TelegramNotification, Long> {
+    override fun process(notification: Any, data: TelegramNotification, destination: Long) {
         TODO("Not yet implemented")
     }
 }
