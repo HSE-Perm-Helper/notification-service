@@ -25,7 +25,7 @@ class NotificationListenerConfig {
         props[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = bootstrapServers
         props[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
         props[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = JsonDeserializer::class.java
-        props[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
+        props[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "latest"
         return props
     }
 
@@ -43,6 +43,23 @@ class NotificationListenerConfig {
         val factory: ConcurrentKafkaListenerContainerFactory<String, ExternalNotification> =
             ConcurrentKafkaListenerContainerFactory<String, ExternalNotification>()
         factory.consumerFactory = consumerFactory()
+        return factory
+    }
+
+    @Bean
+    fun consumerFactoryHashMap(): ConsumerFactory<String, HashMap<String, Any?>> {
+        return DefaultKafkaConsumerFactory(
+            consumerConfigs(),
+            StringDeserializer(),
+            JsonDeserializer(Map::class.java, false)
+        )
+    }
+
+    @Bean
+    fun kafkaListenerContainerFactoryHashMap(): ConcurrentKafkaListenerContainerFactory<String, HashMap<String, Any?>> {
+        val factory: ConcurrentKafkaListenerContainerFactory<String, HashMap<String, Any?>> =
+            ConcurrentKafkaListenerContainerFactory<String, HashMap<String, Any?>>()
+        factory.consumerFactory = consumerFactoryHashMap()
         return factory
     }
 }
