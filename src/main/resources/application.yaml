@@ -12,3 +12,9 @@ spring:
       next-gen-notifications: next-gen-notification
   thymeleaf:
     prefix: classpath:/templates/email/
+  mail:
+    host: ${MAIL_HOST}
+    username: ${MAIL_USERNAME}
+    display-name: ${MAIL_DISPLAY_NAME}
+    password: ${MAIL_PASSWORD}
+    port: ${MAIL_PORT}

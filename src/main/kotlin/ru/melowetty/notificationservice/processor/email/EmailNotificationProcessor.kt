@@ -1,6 +1,12 @@
 package ru.melowetty.notificationservice.processor.email
 
+import jakarta.mail.internet.MimeMessage
+import java.nio.charset.StandardCharsets
 import kotlin.reflect.full.memberProperties
+import org.jsoup.Jsoup
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.mail.javamail.JavaMailSender
+import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Component
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
@@ -13,8 +19,15 @@ import ru.melowetty.notificationservice.utils.ReflectionUtils
 @Component
 @Slf4j
 class EmailNotificationProcessor(
-    private val templateEngine: TemplateEngine
+    private val templateEngine: TemplateEngine,
+    private val emailSender: JavaMailSender
 ) {
+    @Value("\${spring.mail.username}")
+    private lateinit var emailFrom: String
+
+    @Value("\${spring.mail.display-name}")
+    private lateinit var displayName: String
+
     fun process(notification: Any) {
         val emailAnnotation = ReflectionUtils.getAnnotationInstance<EmailNotification>(notification)!!
         val template = emailAnnotation.template
@@ -25,6 +38,32 @@ class EmailNotificationProcessor(
         }
 
         val message = renderMessage(notification, template)
+        val title = extractTitleFromHtml(message)
+
+        val mimeMessage = buildMimeMessage(email, message, title)
+
+        emailSender.send(mimeMessage);
+    }
+
+    fun extractTitleFromHtml(html: String): String {
+        val jsoup = Jsoup.parse(html)
+        return jsoup.title()
+    }
+
+    fun buildMimeMessage(email: String, text: String, subject: String): MimeMessage {
+        val mimeMessage: MimeMessage = emailSender.createMimeMessage()
+        val helper = MimeMessageHelper(
+            mimeMessage,
+            MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
+            StandardCharsets.UTF_8.name()
+        )
+
+        helper.setTo(email)
+        helper.setText(text, true)
+        helper.setSubject(subject)
+        helper.setFrom(emailFrom, displayName)
+
+        return mimeMessage
     }
 
     fun renderMessage(instance: Any, template: String): String {
