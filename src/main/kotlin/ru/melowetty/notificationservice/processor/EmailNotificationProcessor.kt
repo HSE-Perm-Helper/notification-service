@@ -29,9 +29,8 @@ class EmailNotificationProcessor(
     @Value("\${spring.mail.display-name}")
     private lateinit var displayName: String
 
-    override fun process(notification: Any) {
-        val emailAnnotation = ReflectionUtils.getAnnotationInstance<EmailNotification>(notification)!!
-        val template = emailAnnotation.template
+    override fun process(notification: Any, data: EmailNotification) {
+        val template = data.template
 
         val email = ReflectionUtils.getPropertyValueByAnnotation<String, Email>(notification) ?: run {
             log.error("Поле с почтой не найдено! Notification: $notification")
@@ -43,7 +42,9 @@ class EmailNotificationProcessor(
 
         val mimeMessage = buildMimeMessage(email, message, title)
 
-        emailSender.send(mimeMessage);
+        emailSender.send(mimeMessage)
+
+        log.info("Письмо ${data.javaClass.name} на почту $email успешно отправлено")
     }
 
     fun extractTitleFromHtml(html: String): String {
