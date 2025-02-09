@@ -4,7 +4,7 @@ import ru.melowetty.notificationservice.annotation.KafkaNotification
 import ru.melowetty.notificationservice.annotation.NotificationDestination
 import ru.melowetty.notificationservice.annotation.telegram.TelegramNotification
 
-@TelegramNotification("email_is_verified")
+@TelegramNotification("telegram/email_is_verified.txt")
 @KafkaNotification(NotificationType.EMAIL_IS_VERIFIED)
 data class EmailIsVerifiedNotification(
     @NotificationDestination

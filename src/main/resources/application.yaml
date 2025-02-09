@@ -11,10 +11,12 @@ spring:
       notifications: new-notification
       next-gen-notifications: next-gen-notification
   thymeleaf:
-    prefix: classpath:/templates/email/
+    prefix: classpath:/templates/
   mail:
     host: ${MAIL_HOST}
     username: ${MAIL_USERNAME}
     display-name: ${MAIL_DISPLAY_NAME}
     password: ${MAIL_PASSWORD}
     port: ${MAIL_PORT}
+  telegram:
+    token: ${TELEGRAM_BOT_TOKEN}
