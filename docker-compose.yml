@@ -8,13 +8,12 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=$ACTIVE_PROFILE
       - KAFKA_BOOTSTRAP_SERVERS=$KAFKA_SERVERS
-      - EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE=http://$SERVICE_DISCOVERY_USER:$SERVICE_DISCOVERY_PASSWORD@$SERVICE_DISCOVERY_HOST:$SERVICE_DISCOVERY_PORT/eureka
     restart: always
     networks:
-      - service-discovery_internal
+      - api-gateway_backend
       - message-broker_shared
 networks:
-  service-discovery_internal:
+  api-gateway_backend:
     external: true
   message-broker_shared:
     external: true
