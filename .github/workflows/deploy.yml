@@ -14,9 +14,9 @@ jobs:
       with:
         host: ${{ secrets.DEPLOY_SERVER_HOST }}
         username: ${{ secrets.DEPLOY_SERVER_USER }}
-        password: ${{ secrets.DEPLOY_SERVER_PASSWORD }}
+        key: ${{ secrets.DEPLOY_SERVER_KEY }}
         script: |
-          cd /projects/notification-service
+          cd services/notification-service
           git pull
           docker pull melowetty/notification-service
           docker-compose up -d
