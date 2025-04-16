@@ -19,5 +19,5 @@ jobs:
           cd services/notification-service
           git pull
           docker pull melowetty/notification-service
-          docker-compose up -d
+          docker compose up -d
           docker system prune --all --force
