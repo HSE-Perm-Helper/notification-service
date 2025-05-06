@@ -1,12 +1,13 @@
 plugins {
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.spring") version "1.9.25"
-    id("org.springframework.boot") version "3.3.3"
-    id("io.spring.dependency-management") version "1.1.6"
+    id("org.springframework.boot") version "3.4.5"
+    id("io.spring.dependency-management") version "1.1.7"
+    id("se.solrike.sonarlint") version "1.0.0-beta.9"
 }
 
 group = "ru.melowetty"
-version = "0.0.1-SNAPSHOT"
+version = "latest"
 
 java {
     toolchain {
@@ -59,4 +60,23 @@ tasks.jar {
 
 tasks.bootJar {
     archiveFileName.set("notification-service-standalone.jar")
+}
+
+sonarlint {
+    maxIssues = 100
+    dependencies {
+        sonarlintPlugins("org.sonarsource.kotlin:sonar-kotlin-plugin:2.13.0.2116")
+    }
+}
+
+tasks.sonarlintMain {
+    reports {
+        create("xml") {
+            enabled.set(true)
+        }
+    }
+}
+
+tasks.sonarlintTest {
+    ignoreFailures.set(true)
 }
