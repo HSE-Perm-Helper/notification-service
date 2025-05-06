@@ -1,0 +1,2 @@
+**Service admin logs**
+[(${message})]

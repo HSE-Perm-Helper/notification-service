@@ -1,0 +1,9 @@
+package ru.melowetty.notificationservice.model.notification.verification
+
+import ru.melowetty.notificationservice.annotation.notification.ProcessableNotification
+import ru.melowetty.notificationservice.annotation.notification.telegram.TelegramNotification
+import ru.melowetty.notificationservice.model.notification.base.NotificationType
+
+@TelegramNotification("telegram/email_is_verified.txt")
+@ProcessableNotification(NotificationType.EMAIL_IS_VERIFIED)
+class EmailIsVerifiedNotification

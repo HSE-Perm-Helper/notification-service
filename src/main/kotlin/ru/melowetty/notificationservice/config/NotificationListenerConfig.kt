@@ -10,8 +10,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.ConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.support.serializer.JsonDeserializer
-import ru.melowetty.notificationservice.model.ExternalNotification
-
+import ru.melowetty.notificationservice.consumer.model.ExternalNotification
 
 @Configuration
 @EnableKafka
@@ -30,13 +29,12 @@ class NotificationListenerConfig {
     }
 
     @Bean
-    fun consumerFactory(): ConsumerFactory<String, ExternalNotification> {
-        return DefaultKafkaConsumerFactory(
+    fun consumerFactory(): ConsumerFactory<String, ExternalNotification> =
+        DefaultKafkaConsumerFactory(
             consumerConfigs(),
             StringDeserializer(),
-            JsonDeserializer(ExternalNotification::class.java, false)
+            JsonDeserializer(ExternalNotification::class.java, false),
         )
-    }
 
     @Bean
     fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, ExternalNotification> {
@@ -47,13 +45,12 @@ class NotificationListenerConfig {
     }
 
     @Bean
-    fun consumerFactoryHashMap(): ConsumerFactory<String, HashMap<String, Any?>> {
-        return DefaultKafkaConsumerFactory(
+    fun consumerFactoryHashMap(): ConsumerFactory<String, HashMap<String, Any?>> =
+        DefaultKafkaConsumerFactory(
             consumerConfigs(),
             StringDeserializer(),
-            JsonDeserializer(Map::class.java, false)
+            JsonDeserializer(Map::class.java, false),
         )
-    }
 
     @Bean
     fun kafkaListenerContainerFactoryHashMap(): ConcurrentKafkaListenerContainerFactory<String, HashMap<String, Any?>> {
