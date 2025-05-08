@@ -7,12 +7,14 @@ import ru.melowetty.notificationservice.annotation.Slf4j
 import ru.melowetty.notificationservice.annotation.Slf4j.Companion.log
 import ru.melowetty.notificationservice.annotation.notification.Notification
 import ru.melowetty.notificationservice.processor.base.NotificationProcessor
+import ru.melowetty.notificationservice.service.NotificationDestinationService
 import ru.melowetty.notificationservice.utils.ReflectionUtils
 
 @Component
 @Slf4j
 final class CommonNotificationProcessor(
     private val processors: List<NotificationProcessor<*, *>>,
+    private val notificationDestinationService: NotificationDestinationService
 ) {
     companion object {
         private const val PRIORITY_FIELD = "priority"
@@ -59,38 +61,30 @@ final class CommonNotificationProcessor(
             genericType as Class<out Annotation>
         }
 
-    fun notify(notification: Any) {
+    fun notify(notification: Any, userId: String) {
         val annotations = getOrderedNotificationAnnotations(notification, targetAnnotation, PRIORITY_FIELD)
 
-        var processed = false
+        val destinationByAnnotation = notificationDestinationService.getNotificationDestinations(notification, userId)
 
         for (annotation in annotations) {
             try {
-                val processor = processorByAnnotation[annotation.annotationClass.java] ?: continue
+                val annotationClass = annotation.annotationClass.java
+                val processor = processorByAnnotation[annotationClass] ?: continue
+                val destination = destinationByAnnotation[annotationClass] ?: continue
 
-//                val destination =
-//                    ReflectionUtils.getPropertyValueByAnnotation<Any, NotificationDestination>(notification)
-//                        ?: run {
-//                            log.error("Поле с получателем не найдено! Notification: $notification")
-//                            return
-//                        } // заменить
+                @Suppress("UNCHECKED_CAST")
+                (processor as NotificationProcessor<Annotation, Any>).process(
+                    notification,
+                    annotation,
+                    destination,
+                )
 
-//                @Suppress("UNCHECKED_CAST")
-//                (processor as NotificationProcessor<Annotation, Any>).process(
-//                    notification,
-//                    annotation,
-//                    destination,
-//                )
-
-                processed = true
-                break
+                return
             } catch (e: RuntimeException) {
                 log.error("Произошла ошибка во время отправки уведомления", e)
             }
         }
 
-        if (!processed) {
-            throw RuntimeException("Уведомления не были отправлены")
-        }
+        throw RuntimeException("Уведомления не были отправлены")
     }
 }

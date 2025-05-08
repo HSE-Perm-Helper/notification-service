@@ -31,5 +31,28 @@ class ReflectionUtils {
                 ?.call(annotationClass)
         }
 
+        fun getFieldValuesByAnnotations(
+            obj: Any,
+            annotations: List<KClass<out Annotation>>
+        ): Map<KClass<out Annotation>, Any?> {
+            return annotations.associateWith { annotation ->
+                obj::class.memberProperties
+                    .firstOrNull { it.annotations.any { it.annotationClass == annotation } }
+                    ?.call(obj)
+            }
+        }
+
+        inline fun <reified T: Annotation> KClass<*>.extractInnerAnnotations(): List<Pair<Annotation, T>> {
+            return this.annotations.mapNotNull {
+                val annotation = it.annotationClass.java.annotations.firstOrNull {
+                    it.annotationClass == T::class
+                }
+                if (annotation != null) {
+                    Pair(it, annotation as T)
+                } else {
+                    null
+                }
+            }
+        }
     }
 }
