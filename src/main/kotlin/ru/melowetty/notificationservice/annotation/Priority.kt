@@ -1,5 +1,7 @@
 package ru.melowetty.notificationservice.annotation
 
-@Target(AnnotationTarget.PROPERTY)
+@Target(AnnotationTarget.ANNOTATION_CLASS)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class NotificationDestination
+annotation class Priority(
+    val value: Int
+)

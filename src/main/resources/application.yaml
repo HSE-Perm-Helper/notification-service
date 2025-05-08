@@ -22,3 +22,5 @@ spring:
     port: ${MAIL_PORT}
   telegram:
     token: ${TELEGRAM_BOT_TOKEN}
+  user-service:
+    base-url: ${USER_SERVICE_URL}
