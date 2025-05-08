@@ -22,6 +22,7 @@ repositories {
 extra["springCloudVersion"] = "2023.0.3"
 
 dependencies {
+    implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("org.telegram:telegrambots-client:8.0.0")
     implementation("org.jsoup:jsoup:1.18.3")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -63,7 +64,7 @@ tasks.bootJar {
 }
 
 sonarlint {
-    maxIssues = 100
+    maxIssues = 0
     dependencies {
         sonarlintPlugins("org.sonarsource.kotlin:sonar-kotlin-plugin:2.13.0.2116")
     }

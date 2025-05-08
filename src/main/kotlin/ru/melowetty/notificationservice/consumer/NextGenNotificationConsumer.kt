@@ -54,9 +54,9 @@ class NextGenNotificationConsumer(
         containerFactory = "kafkaListenerContainerFactoryHashMap",
     )
     @RetryableTopic(
-        attempts = "5",
+        attempts = "6",
         autoCreateTopics = "true",
-        backoff = Backoff(1000, multiplier = 5.0, maxDelay = 625000),
+        backoff = Backoff(1000, multiplier = 5.0, maxDelay = 3_125_000),
         dltStrategy = DltStrategy.FAIL_ON_ERROR,
         exclude = [JsonMappingException::class, JsonProcessingException::class, NotRetryableException::class],
     )
