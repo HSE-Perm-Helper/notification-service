@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component
 import ru.melowetty.notificationservice.annotation.notification.ProcessableNotification
 import ru.melowetty.notificationservice.annotation.Slf4j
 import ru.melowetty.notificationservice.annotation.Slf4j.Companion.log
+import ru.melowetty.notificationservice.exception.NotRetryableException
 import ru.melowetty.notificationservice.processor.CommonNotificationProcessor
 import ru.melowetty.notificationservice.utils.ReflectionUtils
 
@@ -26,6 +27,7 @@ class NextGenNotificationConsumer(
 
     companion object {
         private const val NOTIFICATION_TYPE_FIELD = "notificationType"
+        private const val USER_ID_FIELD = "userId"
     }
 
     private fun getNotificationsClassesMapper(): Map<String, Class<*>> {
@@ -56,6 +58,7 @@ class NextGenNotificationConsumer(
         autoCreateTopics = "true",
         backoff = Backoff(1000, multiplier = 5.0, maxDelay = 625000),
         dltStrategy = DltStrategy.FAIL_ON_ERROR,
+        exclude = [JsonMappingException::class, JsonProcessingException::class, NotRetryableException::class],
     )
     fun consumeNewNotification(notification: HashMap<String, Any?>) {
         val notificationType = notification[NOTIFICATION_TYPE_FIELD]
@@ -63,14 +66,22 @@ class NextGenNotificationConsumer(
             mapperByNotificationType[notificationType]
                 ?: run {
                     log.error("Уведомление с таким типом не найдено, notification: $$notification")
-                    return
+                    throw NotRetryableException(
+                        "Уведомление с таким типом не найдено, notification: $$notification",
+                    )
                 }
+
+        val userId = notification[USER_ID_FIELD]
+            ?: run {
+                log.error("Не найден userId в уведомлении: $notification")
+                throw NotRetryableException("Не найден userId в уведомлении: $notification")
+            }
 
         val valueAsStr = objectMapper.writeValueAsString(notification)
 
         try {
             val valueAsObject = objectMapper.readValue(valueAsStr, targetType)
-            notificationProcessor.notify(valueAsObject)
+            notificationProcessor.notify(valueAsObject, userId.toString())
         } catch (e: JsonMappingException) {
             log.error("Ошибка во время маппинга нотификации: $notification")
             throw e
