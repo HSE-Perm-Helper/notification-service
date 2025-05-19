@@ -25,6 +25,20 @@ jobs:
         run: chmod +x gradlew ; CI=true ./gradlew clean build
       - name: Test
         run: ./gradlew check
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            build/test-results/test/*.xml
+
+      - name: Publish Sonarlint Results
+        uses: jwgmeligmeyling/spotbugs-github-action@v1.2
+        with:
+          name: Sonarlint
+          title: Sonarlint report
+          path: build/reports/sonarlint/*.xml
         
       - name: Archive build artifacts
         uses: actions/upload-artifact@v4
