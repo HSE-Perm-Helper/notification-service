@@ -23,7 +23,7 @@ class UserService(
         maxAttempts = 3,
         backoff = Backoff(delay = 1000, multiplier = 2.0)
     )
-    @Cacheable
+    @Cacheable(cacheNames = [USER_INFO_CACHE])
     fun getUserInfo(id: UUID): UserInfo {
         val response = restClient.get().uri("user/{id}", id)
             .retrieve()
@@ -43,4 +43,8 @@ class UserService(
         val email: String,
         val telegramId: Long
     )
+
+    companion object {
+        private const val USER_INFO_CACHE = "user-info"
+    }
 }
