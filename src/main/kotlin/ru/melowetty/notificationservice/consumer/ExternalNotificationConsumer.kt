@@ -2,24 +2,25 @@ package ru.melowetty.notificationservice.consumer
 
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
-import ru.melowetty.notificationservice.model.Notification
-import ru.melowetty.notificationservice.model.ExternalNotification
-import ru.melowetty.notificationservice.service.NotificationService
+import ru.melowetty.notificationservice.consumer.model.ExternalNotification
+import ru.melowetty.notificationservice.model.ApiNotification
+import ru.melowetty.notificationservice.service.ApiNotificationService
 
 @Component
 class ExternalNotificationConsumer(
-    private val notificationService: NotificationService
+    private val notificationService: ApiNotificationService,
 ) {
     @KafkaListener(
         topics = ["\${spring.kafka.topic.notifications}"],
         groupId = "\${spring.kafka.consumer.group-id}",
-        containerFactory = "kafkaListenerContainerFactory"
+        containerFactory = "kafkaListenerContainerFactory",
     )
     fun consumeNewNotification(notification: ExternalNotification) {
-        val newNotify = Notification(
-            notificationType = notification.notificationType,
-            payload = notification.payload
-        )
+        val newNotify =
+            ApiNotification(
+                notificationType = notification.notificationType,
+                payload = notification.payload,
+            )
 
         notificationService.addNotification(newNotify)
     }
