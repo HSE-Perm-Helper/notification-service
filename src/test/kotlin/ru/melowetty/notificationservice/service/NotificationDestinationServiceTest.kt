@@ -9,6 +9,7 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import ru.melowetty.notificationservice.annotation.notification.email.EmailNotification
+import ru.melowetty.notificationservice.annotation.notification.telegram.TelegramDestination
 import ru.melowetty.notificationservice.annotation.notification.telegram.TelegramNotification
 import ru.melowetty.notificationservice.model.user.UserInfo
 
@@ -43,5 +44,24 @@ class NotificationDestinationServiceTest {
 
         Assertions.assertTrue(result.containsKey(TelegramNotification::class.java))
         Assertions.assertEquals(telegramId, result[TelegramNotification::class.java])
+    }
+
+    @Test
+    fun `test get destinations from notification object`() {
+        @TelegramNotification("test")
+        class RegularNotification(
+            @TelegramDestination
+            val email: String
+        )
+
+        val email = "test@mail.ru"
+
+        val notification = RegularNotification(email)
+        val result = notificationDestinationService.getNotificationDestinations(notification, null)
+
+        Assertions.assertEquals(1, result.size)
+
+        Assertions.assertTrue(result.containsKey(TelegramNotification::class.java))
+        Assertions.assertEquals(email, result[TelegramNotification::class.java])
     }
 }

@@ -71,17 +71,13 @@ class NextGenNotificationConsumer(
                     )
                 }
 
-        val userId = notification[USER_ID_FIELD]
-            ?: run {
-                log.error("Не найден userId в уведомлении: $notification")
-                throw NotRetryableException("Не найден userId в уведомлении: $notification")
-            }
+        val userId = notification[USER_ID_FIELD] as String?
 
         val valueAsStr = objectMapper.writeValueAsString(notification)
 
         try {
             val valueAsObject = objectMapper.readValue(valueAsStr, targetType)
-            notificationProcessor.notify(valueAsObject, userId.toString())
+            notificationProcessor.notify(valueAsObject, userId)
         } catch (e: JsonMappingException) {
             log.error("Ошибка во время маппинга нотификации: $notification")
             throw e
