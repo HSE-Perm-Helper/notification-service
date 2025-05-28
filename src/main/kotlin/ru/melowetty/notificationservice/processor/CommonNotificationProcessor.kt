@@ -61,7 +61,7 @@ final class CommonNotificationProcessor(
             genericType as Class<out Annotation>
         }
 
-    fun notify(notification: Any, userId: String) {
+    fun notify(notification: Any, userId: String?) {
         val annotations = getOrderedNotificationAnnotations(notification, targetAnnotation, PRIORITY_FIELD)
 
         val destinationByAnnotation = notificationDestinationService.getNotificationDestinations(notification, userId)

@@ -22,7 +22,7 @@ repositories {
 extra["springCloudVersion"] = "2023.0.3"
 
 dependencies {
-    implementation("com.github.ben-manes.caffeine:caffeine")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")
     implementation("org.telegram:telegrambots-client:8.0.0")
     implementation("org.jsoup:jsoup:1.18.3")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
