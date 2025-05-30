@@ -32,13 +32,19 @@ class UserService(
             }
             .requiredBody<UserServiceResponse>()
 
+        val user = response.response
+
         return UserInfo(
-            email = response.email,
-            telegramId = response.telegramId
+            email = user.email,
+            telegramId = user.telegramId
         )
     }
 
     data class UserServiceResponse(
+        val response: UserInfoResponse
+    )
+
+    data class UserInfoResponse(
         val id: UUID,
         val email: String,
         val telegramId: Long
