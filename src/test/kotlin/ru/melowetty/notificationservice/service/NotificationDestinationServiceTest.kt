@@ -33,7 +33,7 @@ class NotificationDestinationServiceTest {
         val email = "test@mail.ru"
         val telegramId = 123456789L
 
-        Mockito.`when`(userService.getUserInfo(userId)).thenReturn(UserInfo(email, telegramId))
+        Mockito.`when`(userService.getUserInfo(userId)).thenReturn(UserInfo(UUID.randomUUID(), email, telegramId))
 
         val result = notificationDestinationService.getNotificationDestinations(notification, userId.toString())
 

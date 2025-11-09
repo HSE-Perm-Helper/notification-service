@@ -1,0 +1,13 @@
+server:
+  port: 9091
+spring:
+  mail:
+    host: ""
+    username: ""
+    display-name: ""
+    password: ""
+    port: ""
+  telegram:
+    token: ""
+  user-service:
+    base-url: ""

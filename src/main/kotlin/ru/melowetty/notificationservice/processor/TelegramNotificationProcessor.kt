@@ -1,16 +1,21 @@
 package ru.melowetty.notificationservice.processor
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.core.env.get
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient
 import org.telegram.telegrambots.meta.api.methods.ParseMode
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 import ru.melowetty.notificationservice.annotation.Slf4j
 import ru.melowetty.notificationservice.annotation.Slf4j.Companion.log
 import ru.melowetty.notificationservice.annotation.notification.telegram.TelegramNotification
+import ru.melowetty.notificationservice.model.notification.telegram.TelegramKeyboardNotification
 import ru.melowetty.notificationservice.processor.base.NotificationProcessor
 import kotlin.reflect.full.memberProperties
 
@@ -24,12 +29,16 @@ class TelegramNotificationProcessor(
 
     private val telegramBot = OkHttpTelegramClient(botToken)
 
+    @Value("\${spring.telegram.notification-prefix}")
+    private lateinit var notificationPrefix: String
+
     override fun process(
         notification: Any,
         data: TelegramNotification,
         destination: Long,
     ) {
-        val text = renderMessage(notification, data.template)
+        val text = notificationPrefix + " " + renderMessage(notification, data.template)
+        val keyboard = renderKeyboard(notification)
 
         val sendMessage =
             SendMessage
@@ -37,6 +46,9 @@ class TelegramNotificationProcessor(
                 .text(text)
                 .chatId(destination)
                 .parseMode(ParseMode.MARKDOWN)
+                .apply {
+                    if (keyboard != null) replyMarkup(keyboard)
+                }
                 .build()
 
         telegramBot.execute(sendMessage)
@@ -55,5 +67,22 @@ class TelegramNotificationProcessor(
         instance::class.memberProperties.forEach { ctx.setVariable(it.name, it.call(instance)) }
 
         return templateEngine.process(template, ctx)
+    }
+
+    fun renderKeyboard(instance: Any): InlineKeyboardMarkup? {
+        return if (instance is TelegramKeyboardNotification) {
+            val rows = instance.getCallbackQueryKeyboard().map {
+                InlineKeyboardRow(
+                    it.map { button ->
+                        InlineKeyboardButton.builder()
+                            .text(button.first)
+                            .callbackData(button.second)
+                            .build()
+                    }
+                )
+            }
+
+            InlineKeyboardMarkup(rows)
+        } else null
     }
 }

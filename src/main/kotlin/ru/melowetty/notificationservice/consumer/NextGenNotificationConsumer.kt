@@ -16,6 +16,7 @@ import ru.melowetty.notificationservice.annotation.Slf4j.Companion.log
 import ru.melowetty.notificationservice.exception.NotRetryableException
 import ru.melowetty.notificationservice.processor.CommonNotificationProcessor
 import ru.melowetty.notificationservice.utils.ReflectionUtils
+import java.util.UUID
 
 @Component
 @Slf4j
@@ -71,13 +72,26 @@ class NextGenNotificationConsumer(
                     )
                 }
 
-        val userId = notification[USER_ID_FIELD] as String?
-
         val valueAsStr = objectMapper.writeValueAsString(notification)
 
         try {
             val valueAsObject = objectMapper.readValue(valueAsStr, targetType)
-            notificationProcessor.notify(valueAsObject, userId)
+
+            val userId = notification[USER_ID_FIELD]
+            when (userId) {
+                is String -> {
+                    notificationProcessor.notify(valueAsObject, userId)
+                }
+                is List<*> -> {
+                    val userIds = (userId as? List<String>)
+                        ?.map { UUID.fromString(it) }
+                        ?: throw NotRetryableException("Неверный формат userId, ожидается List<String>, а дано: $userId")
+                    notificationProcessor.batchNotify(valueAsObject, userIds)
+                }
+                else -> {
+                    notificationProcessor.notify(valueAsObject, null)
+                }
+            }
         } catch (e: JsonMappingException) {
             log.error("Ошибка во время маппинга нотификации: $notification")
             throw e
