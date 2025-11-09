@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-slim
+FROM openjdk:21-ea-slim
 
 COPY notification-service-standalone.jar .
 
