@@ -10,6 +10,14 @@ import ru.melowetty.notificationservice.utils.ReflectionUtils.Companion.extractI
 class NotificationDestinationService(
     private val userService: UserService,
 ) {
+    fun getBatchNotificationDestinations(
+        notification: Any, userIds: List<UUID>
+    ): Map<UUID, Map<Class<out Annotation>, Any>> {
+        val userInfos = userService.getUsersInfo(userIds)
+
+        return userInfos.associate { Pair(it.id, extractNotificationDestinationsFromObject(notification, it)) }
+    }
+
     fun getNotificationDestinations(notification: Any, userId: String?): Map<Class<out Annotation>, Any> {
         userId?.let {
             return getNotificationDestinationsByUserId(it, notification)

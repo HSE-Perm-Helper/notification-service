@@ -8,13 +8,16 @@ import ru.melowetty.notificationservice.annotation.Slf4j.Companion.log
 import ru.melowetty.notificationservice.annotation.notification.Notification
 import ru.melowetty.notificationservice.processor.base.NotificationProcessor
 import ru.melowetty.notificationservice.service.NotificationDestinationService
+import ru.melowetty.notificationservice.service.RetryNotificationService
 import ru.melowetty.notificationservice.utils.ReflectionUtils
+import java.util.UUID
 
 @Component
 @Slf4j
 final class CommonNotificationProcessor(
     private val processors: List<NotificationProcessor<*, *>>,
-    private val notificationDestinationService: NotificationDestinationService
+    private val notificationDestinationService: NotificationDestinationService,
+    private val retryNotificationService: RetryNotificationService,
 ) {
     companion object {
         private const val PRIORITY_FIELD = "priority"
@@ -86,5 +89,45 @@ final class CommonNotificationProcessor(
         }
 
         throw RuntimeException("Уведомления не были отправлены")
+    }
+
+    fun batchNotify(notification: Any, userIds: List<UUID>) {
+        userIds.chunked(100).forEach { batch -> internalBatchNotify(notification, batch) }
+    }
+
+    private fun internalBatchNotify(notification: Any, userIds: List<UUID>) {
+        val annotations = getOrderedNotificationAnnotations(notification, targetAnnotation, PRIORITY_FIELD)
+        val destinations = notificationDestinationService.getBatchNotificationDestinations(notification, userIds)
+
+        users@ for (userId in userIds) {
+            val destinationByAnnotation = destinations[userId]
+
+            if (destinationByAnnotation == null) {
+                log.warn("Not found destinations for user $userId")
+                continue@users
+            }
+
+            annotations@ for (annotation in annotations) {
+                try {
+                    val annotationClass = annotation.annotationClass.java
+                    val processor = processorByAnnotation[annotationClass] ?: continue
+                    val destination = destinationByAnnotation[annotationClass] ?: continue
+
+                    @Suppress("UNCHECKED_CAST")
+                    (processor as NotificationProcessor<Annotation, Any>).process(
+                        notification,
+                        annotation,
+                        destination,
+                    )
+
+                    continue@users
+                } catch (e: RuntimeException) {
+                    log.error("Произошла ошибка во время отправки уведомления для пользователя $userId", e)
+                }
+            }
+
+            log.error("Уведомления для пользователя $userId не были отправлены, сообщение было отправлено на повторную отправку")
+            retryNotificationService.retryNotification(notification, userId)
+        }
     }
 }
