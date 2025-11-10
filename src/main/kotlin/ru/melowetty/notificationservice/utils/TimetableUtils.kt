@@ -24,8 +24,8 @@ object TimetableUtils {
     fun getNameByTimetableType(info: TimetableInfo): String {
         return when (info.type) {
             TimetableType.WEEK_SCHEDULE -> "${info.number} неделю"
-            TimetableType.SESSION_SCHEDULE -> "модуль"
-            TimetableType.QUARTER_SCHEDULE -> "сессию"
+            TimetableType.SESSION_SCHEDULE -> "сессию"
+            TimetableType.QUARTER_SCHEDULE -> "модуль"
         }
     }
 
