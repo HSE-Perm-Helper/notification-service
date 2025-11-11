@@ -96,8 +96,8 @@ class UserService(
 
     data class UserInfoResponse(
         val id: UUID,
-        val email: String,
-        val telegramId: Long
+        val email: String?,
+        val telegramId: Long?
     )
 
     companion object {
