@@ -1,5 +1,6 @@
 package ru.melowetty.notificationservice.model.notification.timetable
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import ru.melowetty.notificationservice.annotation.notification.ProcessableNotification
 import ru.melowetty.notificationservice.annotation.notification.telegram.TelegramNotification
 import ru.melowetty.notificationservice.model.notification.base.NotificationType
@@ -12,6 +13,7 @@ import ru.melowetty.notificationservice.utils.TimetableUtils
 @TelegramNotification("telegram/new_timetables.txt")
 @ProcessableNotification(NotificationType.TIMETABLE_ADDED)
 data class NewTimetablesNotification(
+    @JsonProperty("timetablesInfo")
     val timetables: List<TimetableInfo>
 ) : TelegramKeyboardNotification {
     val text: String by lazy { render() }
