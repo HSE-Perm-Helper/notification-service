@@ -24,7 +24,7 @@ data class NewTimetablesNotification(
         }
     }
 
-    fun render(): String {
+    private fun render(): String {
         val grouped = timetables.groupBy { it.type }
 
         val parts = mutableListOf<String>()
@@ -34,6 +34,7 @@ data class NewTimetablesNotification(
         }
         if (grouped.containsKey(TimetableType.WEEK_SCHEDULE)) {
             val weeks = grouped[TimetableType.WEEK_SCHEDULE]!!
+                .sortedBy { it.number }
                 .mapNotNull { it.number }
             val mergedWeeks = CommonUtils.formatOutputArray(weeks)
             parts.add("расписание на $mergedWeeks неделю")

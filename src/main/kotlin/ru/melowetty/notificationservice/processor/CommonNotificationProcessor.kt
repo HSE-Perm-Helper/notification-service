@@ -83,8 +83,8 @@ final class CommonNotificationProcessor(
                 )
 
                 return
-            } catch (e: RuntimeException) {
-                log.error("Произошла ошибка во время отправки уведомления", e)
+            } catch (e: Throwable) {
+                log.error("Произошла ошибка во время отправки уведомления для пользователя $userId", e)
             }
         }
 
@@ -121,7 +121,7 @@ final class CommonNotificationProcessor(
                     )
 
                     continue@users
-                } catch (e: RuntimeException) {
+                } catch (e: Throwable) {
                     log.error("Произошла ошибка во время отправки уведомления для пользователя $userId", e)
                 }
             }
