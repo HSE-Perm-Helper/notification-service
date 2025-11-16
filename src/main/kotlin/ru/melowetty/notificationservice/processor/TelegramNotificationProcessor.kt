@@ -10,11 +10,13 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 import ru.melowetty.notificationservice.annotation.Slf4j
 import ru.melowetty.notificationservice.annotation.Slf4j.Companion.log
 import ru.melowetty.notificationservice.annotation.notification.telegram.TelegramNotification
+import ru.melowetty.notificationservice.exception.NotRetryableException
 import ru.melowetty.notificationservice.model.notification.telegram.TelegramKeyboardNotification
 import ru.melowetty.notificationservice.processor.base.NotificationProcessor
 import kotlin.reflect.full.memberProperties
@@ -37,25 +39,33 @@ class TelegramNotificationProcessor(
         data: TelegramNotification,
         destination: Long,
     ) {
-        val text = notificationPrefix + " " + renderMessage(notification, data.template)
-        val keyboard = renderKeyboard(notification)
+        try {
+            val text = notificationPrefix + " " + renderMessage(notification, data.template)
+            val keyboard = renderKeyboard(notification)
 
-        val sendMessage =
-            SendMessage
-                .builder()
-                .text(text)
-                .chatId(destination)
-                .parseMode(ParseMode.MARKDOWN)
-                .apply {
-                    if (keyboard != null) replyMarkup(keyboard)
-                }
-                .build()
+            val sendMessage =
+                SendMessage
+                    .builder()
+                    .text(text)
+                    .chatId(destination)
+                    .parseMode(ParseMode.MARKDOWN)
+                    .apply {
+                        if (keyboard != null) replyMarkup(keyboard)
+                    }
+                    .build()
 
-        telegramBot.execute(sendMessage)
+            telegramBot.execute(sendMessage)
 
-        log.info(
-            "Сообщение ${notification::class.java.simpleName} пользователю $destination успешно отправлено",
-        )
+            log.info(
+                "Сообщение ${notification::class.java.simpleName} пользователю $destination успешно отправлено",
+            )
+        } catch (e: TelegramApiRequestException) {
+            if (e.errorCode in 400..499) {
+                throw NotRetryableException("Клиентская ошибка Telegram API при отправке сообщения пользователю $destination", e)
+            }
+
+            throw e
+        }
     }
 
     fun renderMessage(
