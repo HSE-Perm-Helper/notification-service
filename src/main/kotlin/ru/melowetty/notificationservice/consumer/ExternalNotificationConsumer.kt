@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component
 import ru.melowetty.notificationservice.consumer.model.ExternalNotification
 import ru.melowetty.notificationservice.model.ApiNotification
 import ru.melowetty.notificationservice.service.ApiNotificationService
+import ru.melowetty.notificationservice.utils.LoggingUtils
 
 @Component
 class ExternalNotificationConsumer(
@@ -16,12 +17,14 @@ class ExternalNotificationConsumer(
         containerFactory = "kafkaListenerContainerFactory",
     )
     fun consumeNewNotification(notification: ExternalNotification) {
-        val newNotify =
-            ApiNotification(
-                notificationType = notification.notificationType,
-                payload = notification.payload,
-            )
+        LoggingUtils.executeWithRequestIdContext {
+            val newNotify =
+                ApiNotification(
+                    notificationType = notification.notificationType,
+                    payload = notification.payload,
+                )
 
-        notificationService.addNotification(newNotify)
+            notificationService.addNotification(newNotify)
+        }
     }
 }

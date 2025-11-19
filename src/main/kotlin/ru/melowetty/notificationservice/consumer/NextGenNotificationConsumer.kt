@@ -15,6 +15,7 @@ import ru.melowetty.notificationservice.annotation.Slf4j
 import ru.melowetty.notificationservice.annotation.Slf4j.Companion.log
 import ru.melowetty.notificationservice.exception.NotRetryableException
 import ru.melowetty.notificationservice.processor.CommonNotificationProcessor
+import ru.melowetty.notificationservice.utils.LoggingUtils
 import ru.melowetty.notificationservice.utils.ReflectionUtils
 import java.util.UUID
 
@@ -62,42 +63,46 @@ class NextGenNotificationConsumer(
         exclude = [JsonMappingException::class, JsonProcessingException::class, NotRetryableException::class],
     )
     fun consumeNewNotification(notification: HashMap<String, Any?>) {
-        val notificationType = notification[NOTIFICATION_TYPE_FIELD]
-        val targetType =
-            mapperByNotificationType[notificationType]
-                ?: run {
-                    log.error("Уведомление с таким типом не найдено, notification: $$notification")
-                    throw NotRetryableException(
-                        "Уведомление с таким типом не найдено, notification: $$notification",
-                    )
-                }
+        LoggingUtils.executeWithRequestIdContext {
+            val notificationType = notification[NOTIFICATION_TYPE_FIELD]
+            val targetType =
+                mapperByNotificationType[notificationType]
+                    ?: run {
+                        log.error("Уведомление с таким типом не найдено, notification: $$notification")
+                        throw NotRetryableException(
+                            "Уведомление с таким типом не найдено, notification: $$notification",
+                        )
+                    }
 
-        val valueAsStr = objectMapper.writeValueAsString(notification)
+            val valueAsStr = objectMapper.writeValueAsString(notification)
 
-        try {
-            val valueAsObject = objectMapper.readValue(valueAsStr, targetType)
+            try {
+                val valueAsObject = objectMapper.readValue(valueAsStr, targetType)
 
-            val userId = notification[USER_ID_FIELD]
-            when (userId) {
-                is String -> {
-                    notificationProcessor.notify(valueAsObject, userId)
+                val userId = notification[USER_ID_FIELD]
+                when (userId) {
+                    is String -> {
+                        notificationProcessor.notify(valueAsObject, userId)
+                    }
+
+                    is List<*> -> {
+                        val userIds = (userId as? List<String>)
+                            ?.map { UUID.fromString(it) }
+                            ?: throw NotRetryableException("Неверный формат userId, ожидается List<String>, а дано: $userId")
+                        notificationProcessor.batchNotify(valueAsObject, userIds)
+                    }
+
+                    else -> {
+                        notificationProcessor.notify(valueAsObject, null)
+                    }
                 }
-                is List<*> -> {
-                    val userIds = (userId as? List<String>)
-                        ?.map { UUID.fromString(it) }
-                        ?: throw NotRetryableException("Неверный формат userId, ожидается List<String>, а дано: $userId")
-                    notificationProcessor.batchNotify(valueAsObject, userIds)
-                }
-                else -> {
-                    notificationProcessor.notify(valueAsObject, null)
-                }
+            } catch (e: JsonMappingException) {
+                log.error("Ошибка во время маппинга нотификации: $notification")
+                throw e
+            } catch (e: JsonProcessingException) {
+                log.error("Ошибка во время процессинга нотификации: $notification")
+                throw e
             }
-        } catch (e: JsonMappingException) {
-            log.error("Ошибка во время маппинга нотификации: $notification")
-            throw e
-        } catch (e: JsonProcessingException) {
-            log.error("Ошибка во время процессинга нотификации: $notification")
-            throw e
         }
     }
 }

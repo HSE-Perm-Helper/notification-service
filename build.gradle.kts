@@ -22,6 +22,8 @@ repositories {
 extra["springCloudVersion"] = "2023.0.3"
 
 dependencies {
+    implementation(libs.logback.encoder)
+
     implementation("org.aspectj:aspectjrt:1.9.7")
     implementation("org.aspectj:aspectjweaver:1.9.7")
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")
@@ -62,7 +64,7 @@ tasks.withType<Test> {
 }
 
 tasks.jar {
-    archiveFileName.set("notification-service.jar")
+    enabled = false
 }
 
 tasks.bootJar {
